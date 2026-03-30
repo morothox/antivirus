@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS hashes (
+  hash_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  hash TEXT NOT NULL,
+  document TEXT NOT NULL
+);
+
+INSERT INTO hashes (hash,document) VALUES
+('75f48c9b50d38eec34db0a8cc1684dbc1671941acc3ee53be9e3d4eafa779a22','Docxvirus'),
+('3966b6767d369286e32f51d05ad9279fc746ea001afc42309b2e0767751ab837','Emailvirus');
