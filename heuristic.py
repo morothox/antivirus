@@ -2,8 +2,27 @@ from dataclasses import dataclass
 from collections import defaultdict
 import re
 import pefile
+import sqlite3
 
 filename = "7z2600-x64.exe"
+
+# low
+#
+#         viele Treffer →→ kleiner positiver Score
+#
+#         wenige Treffer →→ 0 oder kleiner negativer Score
+#
+#     moderate
+#
+#         viele Treffer →→ kleiner negativer oder neutraler Score, je nach Kategorie
+#
+#         wenige Treffer →→ negativer Score mit Faktor 2
+#
+#     high
+#
+#         schon einzelne Treffer sind relevant
+#
+#         viele Treffer →→ klar negativer Score mit Faktor 2 oder 3
 
 
 @dataclass
@@ -13,6 +32,7 @@ class FILE:
     x: int
     y: int
     filename: str
+    categories: list
 
     def count(self):
         return self.x + self.y
@@ -31,35 +51,33 @@ class FILE:
         return calls
 
     def analyze_categories(self):
+        for obj in calls:
+            lenght = len(obj) - 2
+            count = obj["count"]
+            result = count / lenght
 
-    
-    gui = {
-    b"MessageBoxW": 0,
-    b"ShowWindow": 0,
-    b"GetMessageW": 0,
-    b"DispatchMessageW": 0,
-    b"CreateDialogParamW": 0,
-    b"SendMessageW": 0,
-    b"CoInitialize": 0,
-    "count": 0,
-}
+            if result >= 2 / 3:
+                self.x += 1
+            else:
+                self.x -= 1
 
-registry = {
-    b"RegCreateKeyExW": 0,
-    b"RegSetValueExW": 0,
-    b"RegOpenKeyExW": 0,
-    b"RegCloseKey": 0,
-    b"RegQueryValueExW": 0,
-    b"RegDeleteKeyW": 0,
-    "count": 0,
-}
-
-calls = [gui, registry]
-
-v1 = FILE(0, 0, filename=filename)
-
-res = v1.check_api()
-
-print(calls)
+            self.categories.append(obj["name"])
 
 
+v1 = FILE(0, 0, filename=filename, categories=[])
+
+con = sqlite3.connect("av.db")
+cur = con.cursor()
+
+query = cur.execute("SELECT * FROM apis")
+
+
+for row in query:
+    print(row)
+
+
+# v1.check_api()
+#
+# v1.analyze_categories()
+#
+# print(v1)
