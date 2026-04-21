@@ -1,5 +1,4 @@
 import hashlib
-from os import error
 import sqlite3
 import argparse
 from pathlib import Path
