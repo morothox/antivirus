@@ -37,19 +37,33 @@ class FILE:
     def count(self):
         return self.x + self.y
 
-    def check_api(self):
+    def check_categories(self):
+        con = sqlite3.connect("av.db")
+        cur = con.cursor()
+
+        query = cur.execute("SELECT api_name FROM apis")
+        categories = {}
+
         pe = pefile.PE(self.filename)
 
-        for obj in calls:
-            for lib in pe.DIRECTORY_ENTRY_IMPORT:
-                for func in lib.imports:
-                    name = func.name
-                    if name is not None and name in obj:
-                        obj[name] += 1
-                        obj["count"] += 1
+        for lib in pe.DIRECTORY_ENTRY_IMPORT:
+            for func in lib.imports:
+                
+                name = func.name.decode('utf-8', errors='replace')
+                
+                danger = cur.execute("SELECT name, danger FROM groups WHERE group_id = (SELECT group_id FROM apis WHERE api_name = ?)", (name,))
+                row = danger.fetchone()
+                if row is not None:
+                    if row[0] in categories:
+                        key = row[0]
+                        categories[key] += 1
 
-        return calls
-
+                    else:
+                        key = row[0]
+                        categories[key] = 1
+        
+        return(categories)
+    
     def analyze_categories(self):
         for obj in calls:
             lenght = len(obj) - 2
@@ -66,17 +80,9 @@ class FILE:
 
 v1 = FILE(0, 0, filename=filename, categories=[])
 
-con = sqlite3.connect("av.db")
-cur = con.cursor()
-
-query = cur.execute("SELECT * FROM apis")
 
 
-for row in query:
-    print(row)
-
-
-# v1.check_api()
+v1.check_api()
 #
 # v1.analyze_categories()
 #
